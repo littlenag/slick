@@ -114,6 +114,14 @@ Similar to [DBIO.sequence](api:slick.dbio.DBIOAction$@sequence[R,M[+_]%3C:Traver
 for upfront composition, there is [DBIO.fold](<api:slick.dbio.DBIOAction$@fold[T,E%3C:Effect](Seq[DBIOAction[T,NoStream,E]],T)((T,T)=%3ET)(ExecutionContext):DBIOAction[T,NoStream,E]>)
 for working with sequences of actions and composing them based on the previous result.
 
+> {.note}
+> Note: Certain database actions do not result in a value, instead their return type is VOID.
+> Unfortunately, in some circumstances DBIO may expect a value to be returned in order to complete. 
+> For example, taking an advisory lock in PostgreSQL via 
+> `sql"SELECT pg_advisory_lock($lockId);"` will not return a value, since the return type of `pg_advisory_lock` is 
+> VOID. A DBIO wrapping that statement would never complete and thus the server-side would hang. To work-around this
+> simply force a constant value to be returned: `sql"SELECT TRUE, pg_advisory_lock($lockId);".as[Boolean]`.
+
 ### Error Handling
 
 You can use <api:slick.dbio.DBIOAction@andFinally[E2%3C:Effect](DBIOAction[_,NoStream,E2]):DBIOAction[R,S,EwithE2]>
